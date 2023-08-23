@@ -1,17 +1,17 @@
 from pydantic import BaseModel, NonNegativeInt
 import datetime
 from .item import ItemInDB, ItemIn
-
+from typing import Optional
 
 class OrderInDB(BaseModel):
     id: int
-    create_date: datetime.datetime
-    update_date: datetime.datetime
-    tittle: str
+    created_date: datetime.datetime
+    updated_date: datetime.datetime
+    title: str
     total: NonNegativeInt
-    items: list[ItemInDB]
+    items: Optional[list[ItemInDB]]  
 
 
 class OrderIn(BaseModel):
-    tittle: str
+    title: str
     items: list[ItemIn]
