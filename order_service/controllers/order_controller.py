@@ -7,17 +7,20 @@ from core.schemas.order import OrderIn, OrderInDB
 
 async def get_all_orders(db: Connection) -> list[OrderInDB]:
     async with db.cursor() as cur:
-        await cur.execute('''SELECT ROW_TO_JSON(o) AS order_json, JSON_AGG(i.*) AS items
-                             FROM "order" o
-                             LEFT JOIN item i ON o.id = i.order_id
-                             GROUP BY o.id
-                             ORDER BY o.id;
-                             ''')
-        db_order_list = await cur.fetchall()
+        stmt = '''SELECT ROW_TO_JSON(o) AS order_json, JSON_AGG(i.*) AS items
+                  FROM "order" o
+                  LEFT JOIN item i ON o.id = i.order_id
+                  GROUP BY o.id
+                  ORDER BY o.id;
+                  '''
+        await cur.execute(stmt)
+        db_order_list: list[tuple[dict, list[ItemInDB]]] = await cur.fetchall()
+        print(db_order_list)
         list_orders = []
         for order in db_order_list:
             item_list = order[1] if all(order[1]) else []
             list_orders.append(OrderInDB(**order[0], items=item_list))
+
     return list_orders
 
 
@@ -37,7 +40,8 @@ async def get_single_order(id: int, db: Connection) -> OrderInDB:
         
         item_list = db_order[0][1] if all(db_order[0][1]) else []
         order = OrderInDB(**db_order[0][0], items=item_list)
-        return order
+        
+    return order
 
 
 async def create_order(order: OrderIn, db: Connection) -> OrderInDB:   
@@ -58,10 +62,9 @@ async def create_order(order: OrderIn, db: Connection) -> OrderInDB:
                     VALUES {formated_values};
                     '''
             await cur.execute(stmt)
-
         new_order = await get_single_order(order_id, db)
         
-        return new_order
+    return new_order
 
 
 async def update_order(id: int, order: OrderIn, db: Connection) -> OrderInDB:
@@ -109,11 +112,9 @@ async def list_items(order_id: int, db: Connection) -> list[ItemInDB]:
                 '''
         await cur.execute(stmt)
         result: list[tuple[dict]] = await cur.fetchall()
-        list_of_items = []
-        for item in result:
-            list_of_items.append(ItemInDB(**item[0]))
-        
-        return list_of_items
+        list_of_items = [ItemInDB(**item[0]) for item in result]
+   
+    return list_of_items
 
 
 async def get_single_item(order_id: int, item_id: int, db: Connection) -> ItemInDB:
@@ -132,7 +133,7 @@ async def get_single_item(order_id: int, item_id: int, db: Connection) -> ItemIn
             raise HTTPException(status_code=404, detail=f"Item with id {item_id} not found")
         item = ItemInDB(**result[0][0])
         
-        return item
+    return item
 
 
 async def add_item_to_order(order_id: int, items: list[ItemIn], db: Connection) -> list[ItemInDB]:
@@ -154,12 +155,10 @@ async def add_item_to_order(order_id: int, items: list[ItemIn], db: Connection) 
                 '''
         await cur.execute(stmt)
         result: list[tuple[int]] = (await cur.fetchall())
-
-        list_of_items = []
-        for item_id in result[0]:
-            list_of_items.append(await get_single_item(order_id, item_id, db))
+        # could be optimized
+        list_of_items = [await get_single_item(order_id, item_id, db) for item_id in result[0]]
         
-        return list_of_items
+    return list_of_items
 
 
 async def update_item_in_order(order_id: int, item_id: int, item: ItemIn, db: Connection) -> ItemInDB:
@@ -178,7 +177,8 @@ async def update_item_in_order(order_id: int, item_id: int, item: ItemIn, db: Co
                 '''
         await cur.execute(stmt)
         updated_item = await get_single_item(order_id, item_id, db=db)
-        return updated_item
+        
+    return updated_item
 
 
 async def delete_item_from_order(order_id: int, item_id: int, db: Connection):

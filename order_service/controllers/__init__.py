@@ -1,1 +1,1 @@
-from . import order_controller
+from . import order_controller, statistic_controller
