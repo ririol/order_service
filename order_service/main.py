@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 
-from core.models.database import get_database_pool, close_database_pool
-from routers.order_router import order
-from routers.statistic_router import statistic_router
+from database import get_database_pool, close_database_pool
+from routers import order_router, statistic_router
 
 app = FastAPI()
-app.include_router(order)
+app.include_router(order_router)
 app.include_router(statistic_router)
 
 @app.on_event("startup")

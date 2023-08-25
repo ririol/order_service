@@ -1,7 +1,7 @@
 from fastapi import Depends
 import aiopg
 
-from order_service.config import DB_HOST,DB_NAME,DB_PASS,DB_USER, DB_PORT
+from config import DB_HOST,DB_NAME,DB_PASS,DB_USER, DB_PORT
 
 DSN = f'dbname={DB_NAME} user={DB_USER} password={DB_PASS} host={DB_HOST} port={DB_PORT}'
 
