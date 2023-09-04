@@ -1,19 +1,20 @@
 import datetime
 from pydantic import BaseModel, NonNegativeInt
 
+
 class ItemInDB(BaseModel):
     id: int
     name: str
     price: NonNegativeInt
     number: int
     order_id: int
-    
-    
+
+
 class ItemIn(BaseModel):
     name: str
     price: NonNegativeInt
     number: int
-    
+
 
 class OrderInDB(BaseModel):
     id: int
@@ -35,4 +36,4 @@ class Statistic(BaseModel):
     avg_order_price: int
     total_items: int
     avg_items: int
-    most_ordered_item: str
+    most_popular_item: str
